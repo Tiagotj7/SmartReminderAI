@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  
+  body {
+    @apply bg-slate-950 text-white;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Esconder scrollbar mas manter funcional */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Input datetime-local no dark mode */
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+  }
+
+  /* Seleção customizada */
+  ::selection {
+    @apply bg-indigo-500/30;
+  }
+}
+
+@layer components {
+  .animate-in {
+    animation: fadeInUp 0.3s ease-out;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

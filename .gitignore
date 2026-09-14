@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Prisma gerado
+src/generated/
+
+# Ferramentas de IA (não pertencem ao repo)
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
+
+# OS
+.DS_Store
+Thumbs.db

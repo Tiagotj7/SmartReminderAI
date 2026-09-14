@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ═══════════════════════════════════════════════════════
+// USUÁRIO
+// ═══════════════════════════════════════════════════════
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relações
+  reminders Reminder[]
+  settings  UserSettings?
+
+  @@map("users")
+}
+
+// ═══════════════════════════════════════════════════════
+// CONFIGURAÇÕES DO USUÁRIO
+// ═══════════════════════════════════════════════════════
+model UserSettings {
+  id                    String  @id @default(uuid())
+  userId                String  @unique @map("user_id")
+  notificationsEnabled  Boolean @default(true) @map("notifications_enabled")
+  emailNotifications    Boolean @default(false) @map("email_notifications")
+  defaultCategory       String  @default("geral") @map("default_category")
+  defaultPriority       String  @default("medium") @map("default_priority")
+  theme                 String  @default("dark")
+  timezone              String  @default("America/Sao_Paulo")
+
+  // Relação
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// ═══════════════════════════════════════════════════════
+// CATEGORIA
+// ═══════════════════════════════════════════════════════
+model Category {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  emoji     String
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relação
+  reminders Reminder[]
+
+  @@map("categories")
+}
+
+// ═══════════════════════════════════════════════════════
+// LEMBRETE
+// ═══════════════════════════════════════════════════════
+model Reminder {
+  id          String         @id @default(uuid())
+  userId      String         @map("user_id")
+  categoryId  String?        @map("category_id")
+  title       String
+  description String?
+  dateTime    DateTime       @map("date_time")
+  priority    Priority       @default(MEDIUM)
+  repeat      RepeatType     @default(NONE)
+  completed   Boolean        @default(false)
+  completedAt DateTime?      @map("completed_at")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+
+  // Relações
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags     ReminderTag[]
+  history  ReminderHistory[]
+
+  // Índices para performance
+  @@index([userId])
+  @@index([userId, completed])
+  @@index([userId, dateTime])
+  @@index([dateTime])
+
+  @@map("reminders")
+}
+
+// ═══════════════════════════════════════════════════════
+// TAGS
+// ═══════════════════════════════════════════════════════
+model Tag {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  reminders ReminderTag[]
+
+  @@map("tags")
+}
+
+// Tabela pivot Reminder <-> Tag
+model ReminderTag {
+  reminderId String @map("reminder_id")
+  tagId      String @map("tag_id")
+
+  reminder Reminder @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  tag      Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([reminderId, tagId])
+  @@map("reminder_tags")
+}
+
+// ═══════════════════════════════════════════════════════
+// HISTÓRICO DE ALTERAÇÕES
+// ═══════════════════════════════════════════════════════
+model ReminderHistory {
+  id         String   @id @default(uuid())
+  reminderId String   @map("reminder_id")
+  action     String   // created | updated | completed | deleted
+  changes    Json?    // campos alterados
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  reminder Reminder @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+
+  @@index([reminderId])
+  @@map("reminder_history")
+}
+
+// ═══════════════════════════════════════════════════════
+// ENUMS
+// ═══════════════════════════════════════════════════════
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@map("priority")
+}
+
+enum RepeatType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+  YEARLY
+
+  @@map("repeat_type")
+}
