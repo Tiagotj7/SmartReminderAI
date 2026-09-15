@@ -12,7 +12,7 @@ export default function PermissionBanner({ status, onRequest, onDismiss }: Props
 
   return (
     <div
-      className={`relative rounded-2xl border p-5 mb-6 animate-fade-up ${
+      className={`relative rounded-2xl border p-4 mb-5 sm:p-5 sm:mb-6 animate-fade-up ${
         status === 'denied'
           ? 'bg-red-950/20 border-red-800/40'
           : 'bg-gradient-to-r from-indigo-950/40 to-purple-950/30 border-indigo-800/40'
@@ -24,8 +24,8 @@ export default function PermissionBanner({ status, onRequest, onDismiss }: Props
         </button>
       )}
 
-      <div className="flex items-start gap-4">
-        <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+      <div className="flex items-start gap-3 sm:gap-4">
+        <div className={`hidden w-11 h-11 rounded-xl items-center justify-center flex-shrink-0 sm:flex ${
           status === 'denied'
             ? 'bg-red-500/15 border border-red-500/20'
             : 'bg-indigo-500/15 border border-indigo-500/20'
@@ -54,8 +54,8 @@ export default function PermissionBanner({ status, onRequest, onDismiss }: Props
               <p className="text-xs text-slate-400 leading-relaxed mb-3">
                 Receba alertas enquanto o navegador mantiver o app ativo.
               </p>
-              <div className="flex items-center gap-3 flex-wrap">
-                <button onClick={onRequest} className="btn-primary !py-2 !px-4 !text-xs">
+              <div className="flex items-stretch gap-2 flex-col sm:flex-row sm:items-center sm:gap-3">
+                <button onClick={onRequest} className="btn-primary !py-2 !px-3 !text-xs sm:!px-4">
                   <Bell className="w-3.5 h-3.5" />
                   Ativar Notificações
                 </button>

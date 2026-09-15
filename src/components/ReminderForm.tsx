@@ -107,28 +107,28 @@ export default function ReminderForm({ onAdd, onClose, initialData }: Props) {
     : []
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
+    <div className="modal-overlay sm:p-4">
+      <div className="modal-content max-h-[92dvh] sm:max-h-[calc(100dvh-2rem)]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-500/15 border border-indigo-500/20 flex items-center justify-center">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-4 sm:px-6 sm:py-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-indigo-500/20 bg-indigo-500/15 sm:h-10 sm:w-10">
               <Bell className="w-5 h-5 text-indigo-400" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">
+              <h2 className="truncate text-base font-bold text-white">
                 {initialData ? 'Editar Lembrete' : 'Novo Lembrete'}
               </h2>
               <p className="text-xs text-slate-500">Preencha os detalhes abaixo</p>
             </div>
           </div>
-          <button type="button" onClick={onClose} className="btn-ghost">
+          <button type="button" onClick={onClose} className="btn-ghost shrink-0" aria-label="Fechar formulário">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Formulário */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto max-h-[70dvh] sm:max-h-none">
+        <form onSubmit={handleSubmit} className="max-h-[calc(92dvh-4.5rem)] space-y-5 overflow-y-auto p-4 sm:max-h-[calc(100dvh-7rem)] sm:p-6">
 
           {/* Título com sugestões */}
           <div className="relative">
@@ -219,7 +219,7 @@ export default function ReminderForm({ onAdd, onClose, initialData }: Props) {
           )}
 
           {/* Ações */}
-          <div className="flex gap-3 pt-1">
+          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">
             <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancelar</button>
             <button type="submit" disabled={submitting} className="btn-primary flex-1">
               {submitting

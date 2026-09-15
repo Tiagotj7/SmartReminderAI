@@ -83,7 +83,7 @@ export default function ReminderCard({ reminder, onToggle, onDelete, onEdit }: P
         <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl ${priority.dot}`} />
       )}
 
-      <div className="p-4 pl-5">
+      <div className="p-3.5 pl-5 sm:p-4 sm:pl-5">
         {/* Linha principal */}
         <div className="flex items-start gap-3">
           {/* Checkbox */}
@@ -101,10 +101,10 @@ export default function ReminderCard({ reminder, onToggle, onDelete, onEdit }: P
           {/* Título + prioridade */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className={`font-semibold text-base leading-tight ${reminder.completed ? 'line-through text-slate-500' : 'text-white'}`}>
+              <h3 className={`min-w-0 break-words font-semibold text-sm leading-snug sm:text-base ${reminder.completed ? 'line-through text-slate-500' : 'text-white'}`}>
                 {categoryEmoji} {reminder.title}
               </h3>
-              <span className={`flex-shrink-0 text-xs px-2 py-0.5 rounded-full border font-medium ${priority.bg} ${priority.border} ${priority.color}`}>
+              <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full border font-medium sm:px-2 sm:text-xs ${priority.bg} ${priority.border} ${priority.color}`}>
                 {priority.label}
               </span>
             </div>
@@ -127,19 +127,19 @@ export default function ReminderCard({ reminder, onToggle, onDelete, onEdit }: P
             <Tag className="w-3 h-3" /> {reminder.category}
           </span>
 
-          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
             {reminder.description && (
-              <button onClick={() => setExpanded(!expanded)} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors">
+              <button aria-label={expanded ? 'Recolher descrição' : 'Ver descrição'} onClick={() => setExpanded(!expanded)} className="min-h-9 min-w-9 rounded-lg p-2 hover:bg-slate-800 text-slate-500 hover:text-slate-300 transition-colors">
                 {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </button>
             )}
-            <button onClick={() => onEdit(reminder)} className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-500 hover:text-indigo-400 transition-colors">
+            <button aria-label="Editar lembrete" onClick={() => onEdit(reminder)} className="min-h-9 min-w-9 rounded-lg p-2 hover:bg-slate-800 text-slate-500 hover:text-indigo-400 transition-colors">
               <Edit2 className="w-4 h-4" />
             </button>
             <button
               onClick={handleDelete}
               title={confirmDelete ? 'Clique para confirmar' : 'Excluir'}
-              className={`p-1.5 rounded-lg transition-all ${confirmDelete ? 'bg-red-500/20 text-red-400 scale-110' : 'hover:bg-slate-800 text-slate-500 hover:text-red-400'}`}
+              className={`min-h-9 min-w-9 rounded-lg p-2 transition-all ${confirmDelete ? 'bg-red-500/20 text-red-400 scale-110' : 'hover:bg-slate-800 text-slate-500 hover:text-red-400'}`}
             >
               <Trash2 className="w-4 h-4" />
             </button>

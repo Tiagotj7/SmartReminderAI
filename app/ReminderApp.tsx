@@ -14,6 +14,7 @@ import PermissionBanner from '../src/components/PermissionBanner'
 import AuthForm from '../src/components/AuthForm'
 import ProfilePanel from '../src/components/ProfilePanel'
 import InstallGuide from '../src/components/InstallGuide'
+import MeshDriftBackground from '../src/components/MeshDriftBackground'
 import { notificationService } from '../src/services/notificationService'
 import type { FilterType, Category, FilterConfig, Reminder } from '../src/types'
 
@@ -112,7 +113,8 @@ export default function App() {
   // RENDER
   // ─────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-950 text-white">
+    <div className="relative isolate min-h-screen w-full overflow-x-hidden bg-slate-950/35 text-white">
+      <MeshDriftBackground />
 
       {/* ══ ERRO DE CONEXÃO ══ */}
       {error && (
@@ -122,20 +124,20 @@ export default function App() {
       )}
 
       {/* ══ HEADER ══ */}
-      <header className="sticky top-0 z-40 bg-slate-950/90 backdrop-blur-xl border-b border-slate-800">
-        <div className="max-w-3xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+      <header className="relative z-10 sticky top-0 border-b border-white/10 bg-slate-950/55 shadow-[0_8px_30px_rgba(2,6,23,0.28)] backdrop-blur-2xl">
+        <div className="mx-auto flex w-full max-w-3xl justify-center px-3 py-3 sm:px-4 sm:py-4">
+          <div className="flex min-w-0 items-center justify-between gap-2">
 
             {/* Logo */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 sm:h-10 sm:w-10">
                 <Bell className="w-5 h-5 text-white" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-white leading-none">
+              <div className="min-w-0">
+                <h1 className="truncate text-base font-bold leading-none text-white sm:text-lg">
                   Smart Reminders
                 </h1>
-                <p className="text-xs text-slate-500">
+                <p className="truncate text-[11px] text-slate-500 sm:text-xs">
                   {stats.pending} pendentes
                   {stats.overdue > 0 && (
                     <span className="text-red-400 ml-1">
@@ -147,24 +149,25 @@ export default function App() {
             </div>
 
             {/* Ações */}
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               <button
                 onClick={() => setShowProfile(true)}
-                className="flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+                className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.08] text-slate-300 transition-colors hover:bg-white/[0.15] hover:text-white sm:h-auto sm:w-auto sm:gap-2 sm:px-3 sm:py-2"
                 title="Meu perfil"
+                aria-label="Meu perfil"
               >
                 <UserCircle className="h-4 w-4" />
                 <span className="hidden sm:inline">Perfil</span>
               </button>
 
               {/* Status notificação */}
-              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800">
+              <div className="flex h-9 items-center gap-1.5 rounded-lg border border-white/10 bg-white/[0.08] px-2 sm:h-auto sm:px-2.5 sm:py-1.5">
                 <div
                   className={`w-2 h-2 rounded-full ${
                     permissionStatus === 'granted' ? 'bg-green-400' : 'bg-red-400'
                   }`}
                 />
-                <span className="text-xs text-slate-400 hidden sm:block">
+                <span className="hidden text-xs text-slate-400 sm:block">
                   {permissionStatus === 'granted' ? 'Ativas' : 'Desativadas'}
                 </span>
               </div>
@@ -173,12 +176,13 @@ export default function App() {
               {permissionStatus === 'granted' && (
                 <button
                   onClick={handleTestNotification}
-                  className={`p-2 rounded-lg transition-all ${
+                  className={`h-9 w-9 rounded-lg p-2 transition-all ${
                     testSent
                       ? 'bg-green-500/20 text-green-400'
-                      : 'bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700'
+                      : 'border border-white/10 bg-white/[0.08] text-slate-400 hover:bg-white/[0.15] hover:text-white'
                   }`}
                   title="Enviar notificação de teste"
+                  aria-label="Enviar notificação de teste"
                 >
                   <Bell className="w-4 h-4" />
                 </button>
@@ -190,11 +194,11 @@ export default function App() {
                   setEditingReminder(null)
                   setShowForm(true)
                 }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium transition-all shadow-lg shadow-indigo-500/30"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Novo Lembrete</span>
-                <span className="sm:hidden">Novo</span>
+                className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 transition-all hover:bg-indigo-500 sm:h-auto sm:w-auto sm:gap-2 sm:px-4 sm:py-2"
+                aria-label="Novo lembrete"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Novo Lembrete</span>
               </button>
             </div>
           </div>
@@ -202,7 +206,7 @@ export default function App() {
       </header>
 
       {/* ══ MAIN ══ */}
-      <main className="max-w-3xl mx-auto px-4 py-6">
+      <main className="relative z-10 mx-auto w-full max-w-3xl px-3 py-4 sm:px-4 sm:py-6">
 
         {/* Banner permissão */}
         <PermissionBanner
@@ -211,7 +215,7 @@ export default function App() {
         />
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div className="mb-5 grid grid-cols-2 gap-2 sm:mb-6 sm:grid-cols-4 sm:gap-3">
           {[
             { label: 'Total',     value: stats.total,     color: 'text-slate-300',                         bg: 'bg-slate-800' },
             { label: 'Pendentes', value: stats.pending,   color: 'text-blue-400',                          bg: 'bg-blue-500/10' },
@@ -220,9 +224,9 @@ export default function App() {
           ].map((s) => (
             <div
               key={s.label}
-              className={`rounded-xl border border-slate-700/50 p-3 ${s.bg}`}
+              className={`rounded-xl border border-slate-700/50 p-2.5 sm:p-3 ${s.bg}`}
             >
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+              <p className={`text-xl font-bold sm:text-2xl ${s.color}`}>{s.value}</p>
               <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
             </div>
           ))}

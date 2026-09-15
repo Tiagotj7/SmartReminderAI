@@ -39,7 +39,7 @@ export default function App() {
     toggleComplete,
     deleteReminder,
     getFiltered,
-  } = useReminders()
+  } = useReminders(null)
 
   const [showForm, setShowForm]           = useState(false)
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null)

@@ -112,7 +112,7 @@ export default function ProfilePanel({ userId, email, onClose, onSignOut }: Prop
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Meu perfil">
       <div className="modal-content max-h-[90dvh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-slate-800 px-6 py-5">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <h2 className="text-base font-bold text-white">Meu perfil</h2>
             <p className="mt-1 text-xs text-slate-500">Informações pessoais são opcionais.</p>
@@ -125,9 +125,9 @@ export default function ProfilePanel({ userId, email, onClose, onSignOut }: Prop
         {loading ? (
           <div className="p-8 text-center text-sm text-slate-400">Carregando perfil...</div>
         ) : (
-          <div className="space-y-6 p-6">
-            <div className="flex items-center gap-4">
-              <div className="relative h-20 w-20 overflow-hidden rounded-full border border-slate-700 bg-slate-800">
+          <div className="space-y-6 p-4 sm:p-6">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-full border border-slate-700 bg-slate-800 sm:h-20 sm:w-20">
                 {profile?.avatarUrl ? (
                   <img src={profile.avatarUrl} alt="Foto de perfil" className="h-full w-full object-cover" />
                 ) : (
