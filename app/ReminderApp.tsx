@@ -130,8 +130,8 @@ export default function App() {
 
             {/* Logo */}
             <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/30 sm:h-10 sm:w-10">
-                <Bell className="w-5 h-5 text-white" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-slate-950 shadow-lg shadow-indigo-500/30 ring-1 ring-white/10 sm:h-10 sm:w-10">
+                <img src="/icon-192.png" alt="Smart Reminders" className="h-full w-full object-cover" />
               </div>
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold leading-none text-white sm:text-lg">
