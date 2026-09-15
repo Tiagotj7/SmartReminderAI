@@ -22,6 +22,14 @@ const PRIORITIES: { value: Priority; label: string }[] = [
   { value: 'high',   label: '🔴 Alta' },
 ]
 
+const REPEATS: { value: ReminderFormData['repeat']; label: string }[] = [
+  { value: 'none', label: 'Não repetir' },
+  { value: 'daily', label: 'Todos os dias' },
+  { value: 'weekly', label: 'Toda semana' },
+  { value: 'monthly', label: 'Todo mês' },
+  { value: 'yearly', label: 'Todo ano' },
+]
+
 const AI_SUGGESTIONS = [
   'Reunião com equipe', 'Consulta médica', 'Pagar conta de luz',
   'Ligar para cliente', 'Estudar para prova', 'Academia',
@@ -180,8 +188,8 @@ export default function ReminderForm({ onAdd, onClose, initialData }: Props) {
             <FieldError message={errors.dateTime} />
           </div>
 
-          {/* Categoria + Prioridade */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Categoria + Prioridade + Repetição */}
+          <div className="grid gap-4 sm:grid-cols-3">
             <div>
               <label className="label">
                 <Tag className="w-3.5 h-3.5 inline mr-1.5 text-slate-400" /> Categoria
@@ -196,7 +204,19 @@ export default function ReminderForm({ onAdd, onClose, initialData }: Props) {
                 {PRIORITIES.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
               </select>
             </div>
+            <div>
+              <label className="label">↻ Repetição</label>
+              <select value={form.repeat} onChange={(e) => setField('repeat', e.target.value as ReminderFormData['repeat'])} className="input-base">
+                {REPEATS.map((repeat) => <option key={repeat.value} value={repeat.value}>{repeat.label}</option>)}
+              </select>
+            </div>
           </div>
+
+          {form.repeat !== 'none' && (
+            <p className="rounded-xl bg-indigo-500/10 px-3 py-2 text-xs leading-relaxed text-indigo-300">
+              Este lembrete será avisado {REPEATS.find((repeat) => repeat.value === form.repeat)?.label.toLowerCase()} até você marcá-lo como concluído.
+            </p>
+          )}
 
           {/* Ações */}
           <div className="flex gap-3 pt-1">

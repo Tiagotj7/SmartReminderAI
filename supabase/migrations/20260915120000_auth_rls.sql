@@ -188,3 +188,31 @@ using (
 create extension if not exists pgcrypto;
 alter table public.reminders
   alter column id set default gen_random_uuid()::text;
+
+
+-- Defaults dos campos obrigatórios de reminders.
+alter table public.reminders
+  alter column created_at set default now(),
+  alter column updated_at set default now(),
+  alter column completed set default false;
+
+
+create or replace function public.set_reminder_updated_at()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists reminders_set_updated_at on public.reminders;
+create trigger reminders_set_updated_at
+before update on public.reminders
+for each row
+execute procedure public.set_reminder_updated_at();
+
+
+-- Recorrência anual.
+alter type public.repeat_type add value if not exists 'YEARLY';

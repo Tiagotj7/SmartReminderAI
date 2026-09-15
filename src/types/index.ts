@@ -14,7 +14,7 @@ export type Category =
   | 'familia'
   | 'lazer'
 
-export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly'
+export type RepeatType = 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export type FilterType = 'all' | 'pending' | 'today' | 'overdue' | 'completed'
 

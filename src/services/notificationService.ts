@@ -1,4 +1,4 @@
-import type { Reminder, PermissionResult, PermissionStatus } from '../types'
+import type { Reminder, PermissionResult, PermissionStatus, RepeatType } from '../types'
 
 // ═══════════════════════════════════════════════════════
 // SERVIÇO DE NOTIFICAÇÕES
@@ -108,9 +108,30 @@ class NotificationService {
     const timerId = setTimeout(() => {
       void this.showNotification(reminder)
       this.scheduledTimers.delete(reminder.id)
+      this.scheduleNextOccurrence(reminder)
     }, remainingDelay)
 
     this.scheduledTimers.set(reminder.id, timerId)
+  }
+
+  private scheduleNextOccurrence(reminder: Reminder): void {
+    if (reminder.repeat === 'none' || reminder.completed) return
+
+    const nextDate = this.getNextOccurrence(new Date(reminder.dateTime), reminder.repeat)
+    this.scheduleNotification({
+      ...reminder,
+      dateTime: nextDate.toISOString(),
+      formattedDate: nextDate.toLocaleString('pt-BR'),
+    })
+  }
+
+  private getNextOccurrence(date: Date, repeat: RepeatType): Date {
+    const next = new Date(date)
+    if (repeat === 'daily') next.setDate(next.getDate() + 1)
+    if (repeat === 'weekly') next.setDate(next.getDate() + 7)
+    if (repeat === 'monthly') next.setMonth(next.getMonth() + 1)
+    if (repeat === 'yearly') next.setFullYear(next.getFullYear() + 1)
+    return next
   }
 
   // ─────────────────────────────────────

@@ -58,6 +58,7 @@ export async function fetchReminderById(id: string, userId: string): Promise<Rem
 export async function createReminder(userId: string, data: ReminderFormData): Promise<Reminder> {
   requireUserId(userId)
   const categoryId = await resolveCategoryId(data.category)
+  const now = new Date().toISOString()
 
   const { data: created, error } = await supabase
     .from('reminders')
@@ -70,6 +71,9 @@ export async function createReminder(userId: string, data: ReminderFormData): Pr
       priority:    data.priority.toUpperCase(),
       repeat:      data.repeat.toUpperCase(),
       category_id: categoryId,
+      completed:   false,
+      created_at:  now,
+      updated_at:  now,
     })
     .select(REMINDER_SELECT)
     .single()
@@ -95,6 +99,7 @@ export async function updateReminder(
     ...(data.priority                    && { priority:    data.priority.toUpperCase() }),
     ...(data.repeat                      && { repeat:      data.repeat.toUpperCase() }),
     ...(categoryId !== undefined         && { category_id: categoryId }),
+    updated_at: new Date().toISOString(),
   }
 
   const { data: updated, error } = await supabase
@@ -121,6 +126,7 @@ export async function toggleReminderComplete(
     .update({
       completed,
       completed_at: completed ? new Date().toISOString() : null,
+      updated_at: new Date().toISOString(),
     })
     .eq('id', id)
     .eq('user_id', userId)
