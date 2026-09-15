@@ -29,7 +29,9 @@ A aplicação fica disponível em `http://localhost:3000`.
 | `DATABASE_URL` | Connection string pooled (runtime) |
 | `DIRECT_URL` | Connection string direta (migrations) |
 
-O projeto usa login anônimo do Supabase. Habilite **Anonymous sign-ins** em Authentication → Providers.
+O fluxo atual usa cadastro e login por e-mail/senha. No Supabase, habilite o provedor **Email** e execute a migration `supabase/migrations/20260915120000_auth_rls.sql` no SQL Editor. Para desenvolvimento local, a confirmação de e-mail pode ser desativada em Authentication → Providers → Email; em produção, configure SMTP e mantenha a confirmação ativada.
+
+Após executar a migration, cada usuário autenticado pode abrir **Perfil** no cabeçalho para editar nome, telefone, data de nascimento e biografia, enviar uma foto de perfil para o bucket `avatars` e alterar a senha. Os dados pessoais são opcionais.
 
 ## Scripts
 

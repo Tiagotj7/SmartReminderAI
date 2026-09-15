@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { isPast, isToday } from 'date-fns'
-import { getOrCreateUserId } from '../lib/supabase'
 import { notificationService } from '../services/notificationService'
 import {
   fetchReminders,
@@ -15,29 +14,25 @@ import type {
   Category, PermissionStatus, PermissionResult, ReminderStats,
 } from '../types'
 
-// ─── Tipos ──────────────────────────────────────────────────────────────────
-
 export interface UseRemindersReturn {
-  reminders:         Reminder[]
-  loading:           boolean
-  error:             string | null
-  permissionStatus:  PermissionStatus
-  stats:             ReminderStats
+  reminders: Reminder[]
+  loading: boolean
+  error: string | null
+  permissionStatus: PermissionStatus
+  stats: ReminderStats
   requestPermission: () => Promise<PermissionResult>
-  addReminder:       (data: ReminderFormData) => Promise<Reminder>
-  editReminder:      (id: string, updates: Partial<ReminderFormData>) => Promise<void>
-  toggleComplete:    (id: string) => Promise<void>
-  deleteReminder:    (id: string) => Promise<void>
-  getFiltered:       (filter: FilterType, category: Category | 'all', search: string) => Reminder[]
+  addReminder: (data: ReminderFormData) => Promise<Reminder>
+  editReminder: (id: string, updates: Partial<ReminderFormData>) => Promise<void>
+  toggleComplete: (id: string) => Promise<void>
+  deleteReminder: (id: string) => Promise<void>
+  getFiltered: (filter: FilterType, category: Category | 'all', search: string) => Reminder[]
   sendTestNotification: () => Promise<void>
 }
-
-// ─── Helpers puros (fora do hook para não recriar a cada render) ─────────────
 
 function syncNotification(reminder: Reminder): void {
   if (reminder.completed) {
     notificationService.cancelNotification(reminder.id)
-  } else if (Notification.permission === 'granted') {
+  } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     notificationService.scheduleNotification(reminder)
   }
 }
@@ -51,47 +46,56 @@ function upsertReminder(list: Reminder[], reminder: Reminder): Reminder[] {
 }
 
 function matchesFilter(r: Reminder, filter: FilterType): boolean {
-  if (filter === 'all')       return true
-  if (filter === 'pending')   return !r.completed
+  if (filter === 'all') return true
+  if (filter === 'pending') return !r.completed
   if (filter === 'completed') return r.completed
-  if (filter === 'today')     return isToday(new Date(r.dateTime))
-  if (filter === 'overdue')   return !r.completed && isPast(new Date(r.dateTime))
+  if (filter === 'today') return isToday(new Date(r.dateTime))
+  if (filter === 'overdue') return !r.completed && isPast(new Date(r.dateTime))
   return true
 }
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
-
-export function useReminders(): UseRemindersReturn {
-  const [reminders, setReminders]             = useState<Reminder[]>([])
+export function useReminders(userId: string | null): UseRemindersReturn {
+  const [reminders, setReminders] = useState<Reminder[]>([])
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus>('default')
-  const [loading, setLoading]                 = useState(true)
-  const [error, setError]                     = useState<string | null>(null)
-  const userIdRef                             = useRef<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const userIdRef = useRef<string | null>(userId)
 
-  // Guard reutilizável: garante que a sessão está pronta antes de mutações
+  useEffect(() => {
+    userIdRef.current = userId
+  }, [userId])
+
   const requireUser = useCallback((): string => {
-    const userId = userIdRef.current
-    if (!userId) throw new Error('Sessão ainda não está pronta')
-    return userId
+    if (!userIdRef.current) throw new Error('Faça login para acessar os lembretes.')
+    return userIdRef.current
   }, [])
 
-  // ─── Init: sessão anônima + fetch + realtime ─────────────────────────────
   useEffect(() => {
     let cancelled = false
     let unsubscribe: (() => void) | undefined
+    let rescheduleTimer: ReturnType<typeof setTimeout> | undefined
 
     async function init() {
+      if (!userId) {
+        setReminders([])
+        setError(null)
+        setLoading(false)
+        setPermissionStatus(notificationService.getPermissionStatus())
+        return
+      }
+
+      setLoading(true)
+      setError(null)
+
       try {
         await notificationService.init()
-        const userId = await getOrCreateUserId()
-        if (cancelled) return
-        userIdRef.current = userId
-
         const data = await fetchReminders(userId)
         if (cancelled) return
 
         setReminders(data)
-        setTimeout(() => notificationService.rescheduleAll(data), 1000)
+        rescheduleTimer = setTimeout(() => {
+          if (!cancelled) notificationService.rescheduleAll(data)
+        }, 1000)
 
         unsubscribe = subscribeToReminders(
           userId,
@@ -102,7 +106,10 @@ export function useReminders(): UseRemindersReturn {
           }
         )
       } catch (err) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Erro ao carregar lembretes')
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Erro ao carregar lembretes')
+          setReminders([])
+        }
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -110,10 +117,13 @@ export function useReminders(): UseRemindersReturn {
 
     void init()
     setPermissionStatus(notificationService.getPermissionStatus())
-    return () => { cancelled = true; unsubscribe?.() }
-  }, [])
 
-  // ─── Ações ──────────────────────────────────────────────────────────────
+    return () => {
+      cancelled = true
+      if (rescheduleTimer) clearTimeout(rescheduleTimer)
+      unsubscribe?.()
+    }
+  }, [userId])
 
   const requestPermission = useCallback(async (): Promise<PermissionResult> => {
     const result = await notificationService.requestPermission()
@@ -135,23 +145,20 @@ export function useReminders(): UseRemindersReturn {
   }, [requireUser])
 
   const toggleComplete = useCallback(async (id: string): Promise<void> => {
-    const userId = requireUser()
     const current = reminders.find((r) => r.id === id)
     if (!current) return
     const completed = !current.completed
-    await toggleReminderCompleteApi(id, userId, completed)
+    await toggleReminderCompleteApi(id, requireUser(), completed)
     const updated = { ...current, completed }
     setReminders((prev) => upsertReminder(prev, updated))
     syncNotification(updated)
   }, [reminders, requireUser])
 
   const deleteReminder = useCallback(async (id: string): Promise<void> => {
-    notificationService.cancelNotification(id)
     await deleteReminderApi(id, requireUser())
+    notificationService.cancelNotification(id)
     setReminders((prev) => prev.filter((r) => r.id !== id))
   }, [requireUser])
-
-  // ─── Derivados ──────────────────────────────────────────────────────────
 
   const getFiltered = useCallback(
     (filter: FilterType, category: Category | 'all', search: string): Reminder[] => {
@@ -168,18 +175,26 @@ export function useReminders(): UseRemindersReturn {
   const stats = useMemo<ReminderStats>(() => {
     const now = new Date()
     return {
-      total:     reminders.length,
-      pending:   reminders.filter((r) => !r.completed).length,
+      total: reminders.length,
+      pending: reminders.filter((r) => !r.completed).length,
       completed: reminders.filter((r) => r.completed).length,
-      overdue:   reminders.filter((r) => !r.completed && new Date(r.dateTime) < now).length,
-      today:     reminders.filter((r) => isToday(new Date(r.dateTime))).length,
+      overdue: reminders.filter((r) => !r.completed && new Date(r.dateTime) < now).length,
+      today: reminders.filter((r) => isToday(new Date(r.dateTime))).length,
     }
   }, [reminders])
 
   return {
-    reminders, loading, error, permissionStatus, stats,
-    requestPermission, addReminder, editReminder,
-    toggleComplete, deleteReminder, getFiltered,
+    reminders,
+    loading,
+    error,
+    permissionStatus,
+    stats,
+    requestPermission,
+    addReminder,
+    editReminder,
+    toggleComplete,
+    deleteReminder,
+    getFiltered,
     sendTestNotification: notificationService.sendTestNotification.bind(notificationService),
   }
 }

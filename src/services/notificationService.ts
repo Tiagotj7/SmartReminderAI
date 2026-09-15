@@ -73,20 +73,8 @@ class NotificationService {
 
     this.cancelNotification(reminder.id)
 
-    // Via Service Worker
-    // Só repassamos delays dentro do limite seguro de setTimeout;
-    // acima disso o próprio SW reagendaria em cadeia (ver comentário abaixo),
-    // mas como o SW não é persistido, evitamos mandar delays inválidos pra ele.
-    if (this.swRegistration?.active && delay <= MAX_TIMEOUT_DELAY) {
-      this.swRegistration.active.postMessage({
-        type: 'SCHEDULE_NOTIFICATION',
-        reminder,
-        delay,
-      })
-    }
-
-    // Via setTimeout (fallback), em "pedaços" para nunca estourar o limite
-    // de 32 bits do setTimeout (~24.8 dias). Cada disparo reagenda o restante.
+    // O Service Worker é usado apenas para exibir a notificação.
+    // O agendamento fica neste serviço para evitar notificações duplicadas.
     this.scheduleChunked(reminder, delay)
 
     console.log(

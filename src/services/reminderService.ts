@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { resolveCategoryId } from './categoryService'
+import { v4 as uuidv4 } from 'uuid'
 import type { Reminder, ReminderFormData } from '../types'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -61,6 +62,7 @@ export async function createReminder(userId: string, data: ReminderFormData): Pr
   const { data: created, error } = await supabase
     .from('reminders')
     .insert({
+      id:          uuidv4(),
       user_id:     userId,
       title:       data.title,
       description: data.description,

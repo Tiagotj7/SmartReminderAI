@@ -4,12 +4,16 @@ import { useState, useMemo } from 'react'
 import {
   Bell, Plus, Search,
   LayoutDashboard, CheckSquare, Clock,
-  AlertCircle, Smartphone,
+  AlertCircle, Smartphone, UserCircle,
 } from 'lucide-react'
 import { useReminders } from '../src/hooks/useReminders'
+import { useAuth } from '../src/hooks/useAuth'
 import ReminderForm from '../src/components/ReminderForm'
 import ReminderCard from '../src/components/ReminderCard'
 import PermissionBanner from '../src/components/PermissionBanner'
+import AuthForm from '../src/components/AuthForm'
+import ProfilePanel from '../src/components/ProfilePanel'
+import InstallGuide from '../src/components/InstallGuide'
 import { notificationService } from '../src/services/notificationService'
 import type { FilterType, Category, FilterConfig, Reminder } from '../src/types'
 
@@ -28,6 +32,7 @@ const FILTERS: FilterConfig[] = [
 // APP
 // ═══════════════════════════════════════════════════════
 export default function App() {
+  const auth = useAuth()
   const {
     reminders,
     loading,
@@ -40,7 +45,7 @@ export default function App() {
     toggleComplete,
     deleteReminder,
     getFiltered,
-  } = useReminders()
+  } = useReminders(auth.user?.id ?? null)
 
   const [showForm, setShowForm]           = useState(false)
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null)
@@ -48,6 +53,8 @@ export default function App() {
   const [category, setCategory]           = useState<Category | 'all'>('all')
   const [search, setSearch]               = useState('')
   const [testSent, setTestSent]           = useState(false)
+  const [showProfile, setShowProfile]     = useState(false)
+  const [showInstallGuide, setShowInstallGuide] = useState(false)
 
   // ─────────────────────────────────────
   // LEMBRETES FILTRADOS
@@ -80,10 +87,10 @@ export default function App() {
     }
   }
 
-  const handleCloseForm = () => {
-    setShowForm(false)
-    setEditingReminder(null)
-  }
+  const handleCloseForm = () => { setShowForm(false); setEditingReminder(null) }
+
+  if (auth.loading) return <div className="min-h-screen bg-slate-950 flex items-center justify-center"><Bell className="w-8 h-8 text-indigo-400 animate-pulse" /></div>
+  if (!auth.user) return <AuthForm auth={auth} />
 
   // ─────────────────────────────────────
   // LOADING
@@ -141,6 +148,15 @@ export default function App() {
 
             {/* Ações */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowProfile(true)}
+                className="flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-2 text-slate-300 transition-colors hover:bg-slate-700 hover:text-white"
+                title="Meu perfil"
+              >
+                <UserCircle className="h-4 w-4" />
+                <span className="hidden sm:inline">Perfil</span>
+              </button>
+
               {/* Status notificação */}
               <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800">
                 <div
@@ -299,22 +315,14 @@ export default function App() {
           </div>
         )}
 
-        {/* PWA Hint */}
-        <div className="mt-8 p-4 rounded-2xl bg-slate-900 border border-slate-700/50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
-              <Smartphone className="w-4 h-4 text-indigo-400" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-slate-300">
-                📱 Instale no celular como app!
-              </p>
-              <p className="text-xs text-slate-500">
-                Chrome → Menu → "Adicionar à tela inicial"
-              </p>
-            </div>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => setShowInstallGuide(true)}
+          className="mx-auto mt-6 flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-slate-500 transition-colors hover:bg-slate-900 hover:text-slate-300"
+        >
+          <Smartphone className="h-3.5 w-3.5 text-indigo-400" />
+          Instalar como app
+        </button>
       </main>
 
       {/* Modal */}
@@ -325,6 +333,17 @@ export default function App() {
           initialData={editingReminder}
         />
       )}
+
+      {showProfile && (
+        <ProfilePanel
+          userId={auth.user.id}
+          email={auth.user.email}
+          onClose={() => setShowProfile(false)}
+          onSignOut={auth.signOut}
+        />
+      )}
+
+      {showInstallGuide && <InstallGuide onClose={() => setShowInstallGuide(false)} />}
     </div>
   )
 }

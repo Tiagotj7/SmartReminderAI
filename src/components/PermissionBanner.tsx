@@ -52,7 +52,7 @@ export default function PermissionBanner({ status, onRequest, onDismiss }: Props
                 Ative as notificações 🔔
               </h3>
               <p className="text-xs text-slate-400 leading-relaxed mb-3">
-                Receba alertas no navegador e celular, mesmo com o app fechado.
+                Receba alertas enquanto o navegador mantiver o app ativo.
               </p>
               <div className="flex items-center gap-3 flex-wrap">
                 <button onClick={onRequest} className="btn-primary !py-2 !px-4 !text-xs">
