@@ -1,4 +1,4 @@
-// File: /home/mrdj/Documentos/ia/SmartReminderAI/app/layout.tsx
+// File: /home/tiago/Documentos/ia/SmartReminderAI/app/layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

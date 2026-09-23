@@ -502,7 +502,7 @@ video {
 [hidden]:where(:not([hidden="until-found"])) {
   display: none;
 }
-.label {
+  .label {
   margin-bottom: 0.5rem;
   display: block;
   font-size: 0.75rem;
@@ -511,7 +511,7 @@ video {
   --tw-text-opacity: 1;
   color: rgb(203 213 225 / var(--tw-text-opacity, 1));
 }
-.input-base {
+  .input-base {
   width: 100%;
   border-radius: 0.75rem;
   border-width: 1px;
@@ -531,15 +531,15 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
-.input-base::-moz-placeholder {
+  .input-base::-moz-placeholder {
   --tw-text-opacity: 1;
   color: rgb(100 116 139 / var(--tw-text-opacity, 1));
 }
-.input-base::placeholder {
+  .input-base::placeholder {
   --tw-text-opacity: 1;
   color: rgb(100 116 139 / var(--tw-text-opacity, 1));
 }
-.input-base:focus {
+  .input-base:focus {
   --tw-border-opacity: 1;
   border-color: rgb(99 102 241 / var(--tw-border-opacity, 1));
   outline: 2px solid transparent;
@@ -549,15 +549,15 @@ video {
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
   --tw-ring-color: rgb(99 102 241 / 0.3);
 }
-.input-error {
+  .input-error {
   border-color: rgb(239 68 68 / 0.7);
 }
-.input-error:focus {
+  .input-error:focus {
   --tw-border-opacity: 1;
   border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
   --tw-ring-color: rgb(239 68 68 / 0.2);
 }
-.btn-primary {
+  .btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -578,15 +578,15 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
-.btn-primary:hover {
+  .btn-primary:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(99 102 241 / var(--tw-bg-opacity, 1));
 }
-.btn-primary:disabled {
+  .btn-primary:disabled {
   cursor: not-allowed;
   opacity: 0.6;
 }
-.btn-secondary {
+  .btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -606,13 +606,13 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
-.btn-secondary:hover {
+  .btn-secondary:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(51 65 85 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
-.btn-ghost {
+  .btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -624,13 +624,13 @@ video {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
-.btn-ghost:hover {
+  .btn-ghost:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(30 41 59 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity, 1));
 }
-.modal-overlay {
+  .modal-overlay {
   position: fixed;
   inset: 0px;
   z-index: 50;
@@ -643,14 +643,14 @@ video {
   --tw-backdrop-blur: blur(4px);
   backdrop-filter: var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);
 }
-@media (min-width: 640px) {
+  @media (min-width: 640px) {
 
   .modal-overlay {
     padding: 1rem;
   }
 }
-.modal-overlay { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
-.modal-content {
+  .modal-overlay { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
+  .modal-content {
   margin-left: auto;
   margin-right: auto;
   min-width: 0px;
@@ -666,17 +666,17 @@ video {
   --tw-shadow-colored: 0 25px 50px -12px var(--tw-shadow-color);
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow); width: min(100%, 32rem); max-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 1.5rem);
 }
-.spinner {
+  .spinner {
   height: 1rem;
   width: 1rem;
 }
-@keyframes spin {
+  @keyframes spin {
 
   to {
     transform: rotate(360deg);
   }
 }
-.spinner {
+  .spinner {
   animation: spin 1s linear infinite;
   border-radius: 9999px;
   border-width: 2px;
