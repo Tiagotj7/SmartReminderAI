@@ -33,7 +33,8 @@ async function reply(chatId: number | string, text: string) {
 
 Deno.serve(async (request) => {
   if (request.method !== 'POST') return json({ ok: true })
-  if (webhookSecret && request.headers.get('x-telegram-webhook-secret') !== webhookSecret) {
+  const receivedSecret = request.headers.get('x-telegram-bot-api-secret-token')
+  if (webhookSecret && receivedSecret !== webhookSecret) {
     return json({ error: 'Não autorizado' }, 401)
   }
 
