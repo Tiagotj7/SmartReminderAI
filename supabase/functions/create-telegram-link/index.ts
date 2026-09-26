@@ -9,6 +9,7 @@ const corsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-headers': 'authorization, x-client-info, apikey, content-type',
   'access-control-allow-methods': 'POST, OPTIONS',
+  'access-control-max-age': '86400',
 }
 
 function json(body: unknown, status = 200) {
@@ -30,7 +31,7 @@ function randomToken() {
 }
 
 Deno.serve(async (request) => {
-  if (request.method === 'OPTIONS') return json({ ok: true })
+  if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: corsHeaders })
   if (request.method !== 'POST') return json({ error: 'Método não permitido' }, 405)
   if (!botUsername) return json({ error: 'TELEGRAM_BOT_USERNAME não configurado.' }, 500)
 

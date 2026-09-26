@@ -1,0 +1,11 @@
+[functions.create-telegram-link]
+verify_jwt = false
+
+[functions.telegram-webhook]
+verify_jwt = false
+
+[functions.dispatch-reminders]
+verify_jwt = false
+
+[functions.verify-phone]
+verify_jwt = false
