@@ -29,11 +29,11 @@ export interface UseRemindersReturn {
   sendTestNotification: () => Promise<void>
 }
 
-function syncNotification(reminder: Reminder): void {
+function syncNotification(reminder: Reminder, whatsappPhone: string | null): void {
   if (reminder.completed) {
     notificationService.cancelNotification(reminder.id)
   } else if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-    notificationService.scheduleNotification(reminder)
+    notificationService.scheduleNotification(reminder, whatsappPhone)
   }
 }
 
@@ -54,7 +54,7 @@ function matchesFilter(r: Reminder, filter: FilterType): boolean {
   return true
 }
 
-export function useReminders(userId: string | null): UseRemindersReturn {
+export function useReminders(userId: string | null, whatsappPhone: string | null = null): UseRemindersReturn {
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [permissionStatus, setPermissionStatus] = useState<PermissionStatus>('default')
   const [loading, setLoading] = useState(true)
@@ -94,7 +94,7 @@ export function useReminders(userId: string | null): UseRemindersReturn {
 
         setReminders(data)
         rescheduleTimer = setTimeout(() => {
-          if (!cancelled) notificationService.rescheduleAll(data)
+          if (!cancelled) notificationService.rescheduleAll(data, whatsappPhone)
         }, 1000)
 
         unsubscribe = subscribeToReminders(
@@ -123,7 +123,7 @@ export function useReminders(userId: string | null): UseRemindersReturn {
       if (rescheduleTimer) clearTimeout(rescheduleTimer)
       unsubscribe?.()
     }
-  }, [userId])
+  }, [userId, whatsappPhone])
 
   const requestPermission = useCallback(async (): Promise<PermissionResult> => {
     const result = await notificationService.requestPermission()
@@ -134,15 +134,15 @@ export function useReminders(userId: string | null): UseRemindersReturn {
   const addReminder = useCallback(async (data: ReminderFormData): Promise<Reminder> => {
     const created = await createReminderApi(requireUser(), data)
     setReminders((prev) => upsertReminder(prev, created))
-    syncNotification(created)
+    syncNotification(created, whatsappPhone)
     return created
-  }, [requireUser])
+  }, [requireUser, whatsappPhone])
 
   const editReminder = useCallback(async (id: string, updates: Partial<ReminderFormData>): Promise<void> => {
     const updated = await updateReminderApi(id, requireUser(), updates)
     setReminders((prev) => upsertReminder(prev, updated))
-    syncNotification(updated)
-  }, [requireUser])
+    syncNotification(updated, whatsappPhone)
+  }, [requireUser, whatsappPhone])
 
   const toggleComplete = useCallback(async (id: string): Promise<void> => {
     const current = reminders.find((r) => r.id === id)
@@ -151,8 +151,8 @@ export function useReminders(userId: string | null): UseRemindersReturn {
     await toggleReminderCompleteApi(id, requireUser(), completed)
     const updated = { ...current, completed }
     setReminders((prev) => upsertReminder(prev, updated))
-    syncNotification(updated)
-  }, [reminders, requireUser])
+    syncNotification(updated, whatsappPhone)
+  }, [reminders, requireUser, whatsappPhone])
 
   const deleteReminder = useCallback(async (id: string): Promise<void> => {
     await deleteReminderApi(id, requireUser())

@@ -7,6 +7,26 @@ import type { Reminder, PermissionResult, PermissionStatus, RepeatType } from '.
 // Qualquer valor acima disso estoura e dispara quase na hora.
 const MAX_TIMEOUT_DELAY = 2_147_483_647 // ~24.8 dias
 
+function normalizeWhatsAppPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, '')
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`
+  return digits
+}
+
+function buildWhatsAppUrl(phone: string | null, reminder: Reminder): string | null {
+  if (!phone) return null
+  const normalizedPhone = normalizeWhatsAppPhone(phone)
+  if (normalizedPhone.length < 10) return null
+
+  const message = [
+    `🔔 Lembrete: ${reminder.title}`,
+    `⏰ Horário: ${reminder.formattedDate}`,
+    reminder.description ? `📝 ${reminder.description}` : '',
+  ].filter(Boolean).join('\n')
+
+  return `https://wa.me/${normalizedPhone}?text=${encodeURIComponent(message)}`
+}
+
 class NotificationService {
   private swRegistration: ServiceWorkerRegistration | null = null
   private scheduledTimers: Map<string, ReturnType<typeof setTimeout>> = new Map()
@@ -61,7 +81,7 @@ class NotificationService {
   // ─────────────────────────────────────
   // AGENDAR NOTIFICAÇÃO
   // ─────────────────────────────────────
-  scheduleNotification(reminder: Reminder): boolean {
+  scheduleNotification(reminder: Reminder, whatsappPhone: string | null = null): boolean {
     const now = Date.now()
     const reminderTime = new Date(reminder.dateTime).getTime()
     const delay = reminderTime - now
@@ -75,7 +95,7 @@ class NotificationService {
 
     // O Service Worker é usado apenas para exibir a notificação.
     // O agendamento fica neste serviço para evitar notificações duplicadas.
-    this.scheduleChunked(reminder, delay)
+    this.scheduleChunked(reminder, delay, whatsappPhone)
 
     console.log(
       `📅 Agendado: "${reminder.title}" em ${Math.round(delay / 60000)} min`
@@ -86,35 +106,35 @@ class NotificationService {
   // ─────────────────────────────────────
   // AGENDAR EM PEDAÇOS (evita overflow do setTimeout)
   // ─────────────────────────────────────
-  private scheduleChunked(reminder: Reminder, remainingDelay: number): void {
+  private scheduleChunked(reminder: Reminder, remainingDelay: number, whatsappPhone: string | null): void {
     if (remainingDelay > MAX_TIMEOUT_DELAY) {
       const timerId = setTimeout(() => {
         // Ainda falta tempo: apenas encadeia o próximo pedaço,
         // recalculando a partir do horário real do lembrete (evita drift).
         const newRemaining =
           new Date(reminder.dateTime).getTime() - Date.now()
-        this.scheduleChunked(reminder, newRemaining)
+        this.scheduleChunked(reminder, newRemaining, whatsappPhone)
       }, MAX_TIMEOUT_DELAY)
       this.scheduledTimers.set(reminder.id, timerId)
       return
     }
 
     if (remainingDelay <= 0) {
-      void this.showNotification(reminder)
+      void this.showNotification(reminder, whatsappPhone)
       this.scheduledTimers.delete(reminder.id)
       return
     }
 
     const timerId = setTimeout(() => {
-      void this.showNotification(reminder)
+      void this.showNotification(reminder, whatsappPhone)
       this.scheduledTimers.delete(reminder.id)
-      this.scheduleNextOccurrence(reminder)
+      this.scheduleNextOccurrence(reminder, whatsappPhone)
     }, remainingDelay)
 
     this.scheduledTimers.set(reminder.id, timerId)
   }
 
-  private scheduleNextOccurrence(reminder: Reminder): void {
+  private scheduleNextOccurrence(reminder: Reminder, whatsappPhone: string | null): void {
     if (reminder.repeat === 'none' || reminder.completed) return
 
     const nextDate = this.getNextOccurrence(new Date(reminder.dateTime), reminder.repeat)
@@ -122,7 +142,7 @@ class NotificationService {
       ...reminder,
       dateTime: nextDate.toISOString(),
       formattedDate: nextDate.toLocaleString('pt-BR'),
-    })
+    }, whatsappPhone)
   }
 
   private getNextOccurrence(date: Date, repeat: RepeatType): Date {
@@ -137,7 +157,7 @@ class NotificationService {
   // ─────────────────────────────────────
   // MOSTRAR NOTIFICAÇÃO
   // ─────────────────────────────────────
-  async showNotification(reminder: Reminder): Promise<void> {
+  async showNotification(reminder: Reminder, whatsappPhone: string | null = null): Promise<void> {
     if (Notification.permission !== 'granted') return
 
     // vibrate não está no tipo padrão do TS, usamos cast
@@ -149,6 +169,10 @@ class NotificationService {
       requireInteraction: true,
       tag: `reminder-${reminder.id}`,
       silent: false,
+      data: {
+        whatsappUrl: buildWhatsAppUrl(whatsappPhone, reminder),
+        url: '/',
+      },
     } as NotificationOptions
 
     try {
@@ -158,7 +182,14 @@ class NotificationService {
           options
         )
       } else {
-        new Notification(`🔔 ${reminder.title}`, options)
+        const notification = new Notification(`🔔 ${reminder.title}`, options)
+        const whatsappUrl = buildWhatsAppUrl(whatsappPhone, reminder)
+        if (whatsappUrl) {
+          notification.onclick = () => {
+            notification.close()
+            window.open(whatsappUrl, '_blank', 'noopener,noreferrer')
+          }
+        }
       }
     } catch {
       new Notification(`🔔 ${reminder.title}`, {
@@ -183,11 +214,11 @@ class NotificationService {
   // ─────────────────────────────────────
   // REAGENDAR TODOS
   // ─────────────────────────────────────
-  rescheduleAll(reminders: Reminder[]): number {
+  rescheduleAll(reminders: Reminder[], whatsappPhone: string | null = null): number {
     let count = 0
     reminders.forEach((r) => {
       if (!r.completed && new Date(r.dateTime) > new Date()) {
-        if (this.scheduleNotification(r)) count++
+        if (this.scheduleNotification(r, whatsappPhone)) count++
       }
     })
     console.log(`🔄 ${count} lembretes reagendados`)
@@ -207,6 +238,7 @@ class NotificationService {
       category: 'geral',
       priority: 'medium',
       repeat: 'none',
+      channels: ['push'],
       completed: false,
       createdAt: new Date().toISOString(),
     })

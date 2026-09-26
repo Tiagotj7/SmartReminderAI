@@ -1,7 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { resolveCategoryId } from './categoryService'
 import { v4 as uuidv4 } from 'uuid'
-import type { Reminder, ReminderFormData } from '../types'
+import type { Reminder, ReminderFormData, NotificationChannel } from '../types'
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -20,6 +20,7 @@ function mapToReminder(row: Record<string, unknown>): Reminder {
     formattedDate: new Date(row.date_time as string).toLocaleString('pt-BR'),
     priority:      (row.priority as string).toLowerCase() as Reminder['priority'],
     repeat:        (row.repeat as string).toLowerCase() as Reminder['repeat'],
+    channels:      (Array.isArray(row.channels) ? row.channels : ['push']) as NotificationChannel[],
     category:      ((row.category as { slug: string } | null)?.slug ?? 'geral') as Reminder['category'],
     completed:     row.completed as boolean,
     createdAt:     row.created_at as string,
@@ -70,6 +71,7 @@ export async function createReminder(userId: string, data: ReminderFormData): Pr
       date_time:   data.dateTime,
       priority:    data.priority.toUpperCase(),
       repeat:      data.repeat.toUpperCase(),
+      channels:    data.channels,
       category_id: categoryId,
       completed:   false,
       created_at:  now,
@@ -98,6 +100,7 @@ export async function updateReminder(
     ...(data.dateTime                    && { date_time:   data.dateTime }),
     ...(data.priority                    && { priority:    data.priority.toUpperCase() }),
     ...(data.repeat                      && { repeat:      data.repeat.toUpperCase() }),
+    ...(data.channels                    && { channels:    data.channels }),
     ...(categoryId !== undefined         && { category_id: categoryId }),
     updated_at: new Date().toISOString(),
   }

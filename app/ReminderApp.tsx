@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Bell, Plus, Search,
   LayoutDashboard, CheckSquare, Clock,
@@ -16,6 +16,7 @@ import ProfilePanel from '../src/components/ProfilePanel'
 import InstallGuide from '../src/components/InstallGuide'
 import MeshDriftBackground from '../src/components/MeshDriftBackground'
 import { notificationService } from '../src/services/notificationService'
+import { fetchProfile } from '../src/services/profileService'
 import type { FilterType, Category, FilterConfig, Reminder } from '../src/types'
 
 // ═══════════════════════════════════════════════════════
@@ -34,6 +35,26 @@ const FILTERS: FilterConfig[] = [
 // ═══════════════════════════════════════════════════════
 export default function App() {
   const auth = useAuth()
+  const [whatsappPhone, setWhatsappPhone] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!auth.user?.id) {
+      setWhatsappPhone(null)
+      return
+    }
+
+    let active = true
+    void fetchProfile(auth.user.id)
+      .then((profile) => {
+        if (active) setWhatsappPhone(profile.phone)
+      })
+      .catch(() => {
+        if (active) setWhatsappPhone(null)
+      })
+
+    return () => { active = false }
+  }, [auth.user?.id])
+
   const {
     reminders,
     loading,
@@ -46,7 +67,7 @@ export default function App() {
     toggleComplete,
     deleteReminder,
     getFiltered,
-  } = useReminders(auth.user?.id ?? null)
+  } = useReminders(auth.user?.id ?? null, whatsappPhone)
 
   const [showForm, setShowForm]           = useState(false)
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null)
@@ -344,6 +365,7 @@ export default function App() {
           email={auth.user.email}
           onClose={() => setShowProfile(false)}
           onSignOut={auth.signOut}
+          onPhoneUpdated={setWhatsappPhone}
         />
       )}
 

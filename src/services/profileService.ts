@@ -6,9 +6,14 @@ export interface UserProfile {
   name: string | null
   avatarUrl: string | null
   phone: string | null
+  phoneVerified: boolean
+  telegramChatId: string | null
+  telegramVerified: boolean
   bio: string | null
   birthDate: string | null
 }
+
+const PROFILE_FIELDS = 'id, email, name, avatar_url, phone, phone_verified, telegram_chat_id, telegram_verified, bio, birth_date'
 
 function mapProfile(row: Record<string, unknown>): UserProfile {
   return {
@@ -17,15 +22,25 @@ function mapProfile(row: Record<string, unknown>): UserProfile {
     name: (row.name as string | null) ?? null,
     avatarUrl: (row.avatar_url as string | null) ?? null,
     phone: (row.phone as string | null) ?? null,
+    phoneVerified: Boolean(row.phone_verified),
+    telegramChatId: (row.telegram_chat_id as string | null) ?? null,
+    telegramVerified: Boolean(row.telegram_verified),
     bio: (row.bio as string | null) ?? null,
     birthDate: (row.birth_date as string | null) ?? null,
   }
 }
 
+function normalizePhone(phone: string): string | null {
+  const digits = phone.replace(/\D/g, '')
+  if (!digits) return null
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`
+  return digits
+}
+
 export async function fetchProfile(userId: string): Promise<UserProfile> {
   const { data, error } = await supabase
     .from('users')
-    .select('id, email, name, avatar_url, phone, bio, birth_date')
+    .select(PROFILE_FIELDS)
     .eq('id', userId)
     .single()
 
@@ -42,12 +57,15 @@ export async function updateProfile(
     .update({
       name: data.name?.trim() || null,
       phone: data.phone?.trim() || null,
+      phone_e164: normalizePhone(data.phone ?? ''),
+      phone_verified: false,
+      phone_verified_at: null,
       bio: data.bio?.trim() || null,
       birth_date: data.birthDate || null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', userId)
-    .select('id, email, name, avatar_url, phone, bio, birth_date')
+    .select(PROFILE_FIELDS)
     .single()
 
   if (error) throw new Error(error.message)
@@ -75,7 +93,7 @@ export async function uploadAvatar(userId: string, file: File): Promise<UserProf
     .from('users')
     .update({ avatar_url: publicData.publicUrl, updated_at: new Date().toISOString() })
     .eq('id', userId)
-    .select('id, email, name, avatar_url, phone, bio, birth_date')
+    .select(PROFILE_FIELDS)
     .single()
 
   if (updateError) throw new Error(updateError.message)

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { format, addHours } from 'date-fns'
 import { Plus, X, Bell, Calendar, Tag, AlignLeft, AlertTriangle, Sparkles } from 'lucide-react'
-import type { ReminderFormData, Category, Priority, Reminder } from '../types'
+import type { ReminderFormData, Category, Priority, Reminder, NotificationChannel } from '../types'
 
 // ─── Constantes ──────────────────────────────────────────────────────────────
 
@@ -30,6 +30,13 @@ const REPEATS: { value: ReminderFormData['repeat']; label: string }[] = [
   { value: 'yearly', label: 'Todo ano' },
 ]
 
+const CHANNELS: { value: NotificationChannel; label: string; description: string }[] = [
+  { value: 'push', label: 'Notificação web', description: 'No navegador ou dispositivo' },
+  { value: 'email', label: 'E-mail', description: 'Enviado pelo backend' },
+  { value: 'telegram', label: 'Telegram', description: 'Bot oficial do Telegram' },
+  { value: 'whatsapp', label: 'WhatsApp', description: 'Somente abertura manual segura' },
+]
+
 const AI_SUGGESTIONS = [
   'Reunião com equipe', 'Consulta médica', 'Pagar conta de luz',
   'Ligar para cliente', 'Estudar para prova', 'Academia',
@@ -52,6 +59,7 @@ function initForm(initial?: Reminder | null): ReminderFormData {
     category:    initial?.category ?? 'geral',
     priority:    initial?.priority ?? 'medium',
     repeat:      initial?.repeat   ?? 'none',
+    channels:    initial?.channels ?? ['push', 'telegram'],
   }
 }
 
@@ -85,11 +93,19 @@ export default function ReminderForm({ onAdd, onClose, initialData }: Props) {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
+  const toggleChannel = (channel: NotificationChannel) => {
+    const channels = form.channels.includes(channel)
+      ? form.channels.filter((item) => item !== channel)
+      : [...form.channels, channel]
+    setField('channels', channels)
+  }
+
   const validate = (): boolean => {
     const errs: Partial<Record<keyof ReminderFormData, string>> = {}
     if (!form.title.trim())   errs.title    = 'Título é obrigatório'
     if (!form.dateTime)       errs.dateTime = 'Data e hora são obrigatórias'
     else if (new Date(form.dateTime) <= new Date()) errs.dateTime = 'A data deve ser no futuro'
+    if (form.channels.length === 0) errs.channels = 'Selecione pelo menos um canal'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -217,6 +233,35 @@ export default function ReminderForm({ onAdd, onClose, initialData }: Props) {
               Este lembrete será avisado {REPEATS.find((repeat) => repeat.value === form.repeat)?.label.toLowerCase()} até você marcá-lo como concluído.
             </p>
           )}
+
+          <div>
+            <label className="label">Canais do lembrete</label>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {CHANNELS.map((channel) => {
+                const selected = form.channels.includes(channel.value)
+                return (
+                  <button
+                    key={channel.value}
+                    type="button"
+                    onClick={() => toggleChannel(channel.value)}
+                    className={`rounded-xl border p-3 text-left transition-colors ${selected ? 'border-indigo-500/60 bg-indigo-500/10' : 'border-slate-800 bg-slate-950/40 hover:border-slate-700'}`}
+                  >
+                    <span className="flex items-center gap-2 text-sm font-medium text-white">
+                      <span className={`flex h-4 w-4 items-center justify-center rounded border text-[10px] ${selected ? 'border-indigo-400 bg-indigo-500 text-white' : 'border-slate-600 text-transparent'}`}>✓</span>
+                      {channel.label}
+                    </span>
+                    <span className="mt-1 block pl-6 text-[11px] leading-relaxed text-slate-500">{channel.description}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <FieldError message={errors.channels} />
+            {form.channels.includes('whatsapp') && (
+              <p className="mt-2 rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-xs leading-relaxed text-amber-300">
+                O WhatsApp automático está desativado por segurança. O sistema não usa Meta, WhatsApp Web ou APIs não oficiais. Para envio automático, use Telegram ou e-mail.
+              </p>
+            )}
+          </div>
 
           {/* Ações */}
           <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row">

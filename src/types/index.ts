@@ -20,6 +20,8 @@ export type FilterType = 'all' | 'pending' | 'today' | 'overdue' | 'completed'
 
 export type PermissionStatus = 'granted' | 'denied' | 'default' | 'not-supported'
 
+export type NotificationChannel = 'push' | 'email' | 'whatsapp' | 'telegram'
+
 // ─────────────────────────────────────
 // LEMBRETE
 // ─────────────────────────────────────
@@ -32,6 +34,7 @@ export interface Reminder {
   category: Category
   priority: Priority
   repeat: RepeatType
+  channels: NotificationChannel[]
   completed: boolean
   createdAt: string
 }
@@ -46,6 +49,7 @@ export interface ReminderFormData {
   category: Category
   priority: Priority
   repeat: RepeatType
+  channels: NotificationChannel[]
 }
 
 // ─────────────────────────────────────

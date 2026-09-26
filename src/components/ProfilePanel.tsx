@@ -9,18 +9,22 @@ import {
   uploadAvatar,
   type UserProfile,
 } from '../services/profileService'
+import { supabase } from '../lib/supabase'
 
 interface Props {
   userId: string
   email: string | null | undefined
   onClose: () => void
   onSignOut: () => Promise<void>
+  onPhoneUpdated?: (phone: string | null) => void
 }
 
-export default function ProfilePanel({ userId, email, onClose, onSignOut }: Props) {
+export default function ProfilePanel({ userId, email, onClose, onSignOut, onPhoneUpdated }: Props) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
+  const [telegramLink, setTelegramLink] = useState('')
+  const [telegramLoading, setTelegramLoading] = useState(false)
   const [bio, setBio] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -57,6 +61,7 @@ export default function ProfilePanel({ userId, email, onClose, onSignOut }: Prop
     try {
       const updated = await updateProfile(userId, { name, phone, bio, birthDate })
       setProfile(updated)
+      onPhoneUpdated?.(updated.phone)
       setMessage('Informações salvas.')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível salvar o perfil.')
@@ -80,6 +85,21 @@ export default function ProfilePanel({ userId, email, onClose, onSignOut }: Prop
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível alterar a senha.')
     } finally { setSaving(false) }
+  }
+
+  const connectTelegram = async () => {
+    setError(''); setMessage(''); setTelegramLoading(true)
+    try {
+      const { data, error: functionError } = await supabase.functions.invoke('create-telegram-link', { body: {} })
+      if (functionError) throw functionError
+      if (data?.error) throw new Error(data.error)
+      if (!data?.url) throw new Error('O link do Telegram não foi gerado.')
+      setTelegramLink(data.url)
+      window.open(data.url, '_blank', 'noopener,noreferrer')
+      setMessage('Link aberto. No Telegram, toque em Iniciar para concluir a conexão.')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Não foi possível gerar o link do Telegram.')
+    } finally { setTelegramLoading(false) }
   }
 
   const selectAvatar = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -157,11 +177,42 @@ export default function ProfilePanel({ userId, email, onClose, onSignOut }: Prop
                 <div>
                   <label className="label" htmlFor="profile-phone">Telefone</label>
                   <input id="profile-phone" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(00) 00000-0000" className="input-base" maxLength={30} />
+                  <p className={`mt-1.5 text-xs ${profile?.phoneVerified ? 'text-green-400' : 'text-amber-400'}`}>
+                    {profile?.phoneVerified ? 'Telefone verificado' : 'Telefone ainda não verificado'}
+                  </p>
                 </div>
                 <div>
                   <label className="label" htmlFor="profile-birth-date">Data de nascimento</label>
                   <input id="profile-birth-date" type="date" value={birthDate} onChange={(e) => setBirthDate(e.target.value)} className="input-base" />
                 </div>
+              </div>
+              <div className="rounded-2xl border border-sky-500/20 bg-sky-500/5 p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-semibold text-white">Telegram</h3>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-400">
+                      {profile?.telegramVerified
+                        ? 'Telegram conectado. Seus lembretes podem ser enviados para o bot.'
+                        : 'Conecte o bot uma vez. Não é necessário copiar ou digitar o Chat ID.'}
+                    </p>
+                  </div>
+                  <span className={`rounded-full px-2 py-1 text-[10px] font-medium ${profile?.telegramVerified ? 'bg-green-500/15 text-green-300' : 'bg-slate-800 text-slate-400'}`}>
+                    {profile?.telegramVerified ? 'Conectado' : 'Não conectado'}
+                  </span>
+                </div>
+                {!profile?.telegramVerified && (
+                  <button type="button" onClick={connectTelegram} disabled={telegramLoading} className="btn-secondary mt-3 w-full">
+                    {telegramLoading ? 'Gerando link...' : 'Conectar Telegram'}
+                  </button>
+                )}
+                {telegramLink && (
+                  <a href={telegramLink} target="_blank" rel="noreferrer" className="mt-3 block break-all text-xs text-sky-300 underline">
+                    Abrir link novamente no Telegram
+                  </a>
+                )}
+                <p className="mt-3 text-[11px] leading-relaxed text-slate-500">
+                  O WhatsApp automático está desativado por segurança. O Telegram usa somente a Bot API oficial.
+                </p>
               </div>
               <div>
                 <label className="label" htmlFor="profile-bio">Sobre você</label>
